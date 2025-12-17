@@ -18,11 +18,18 @@ def get_client():
     
     if _telegram_client is None:
         logger.info("Инициализация нового Telegram клиента")
-        _telegram_client = TelegramClient(
-            config.TG_SESSION_NAME,
-            config.TG_API_ID,
-            config.TG_API_HASH
-        )
+        try:
+            _telegram_client = TelegramClient(
+                config.TG_SESSION_NAME,
+                config.TG_API_ID,
+                config.TG_API_HASH
+            )
+        except ValueError as e:
+            logger.error(f"Ошибка инициализации клиента: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Неизвестная ошибка при инициализации клиента: {e}")
+            raise
     
     return _telegram_client
 
@@ -30,9 +37,12 @@ async def is_authorized():
     """
     Проверяет, авторизован ли клиент в Telegram
     """
-    client = get_client()
     try:
+        client = get_client()
         await client.get_me()
         return True
+    except ValueError:
+        # Credentials are missing
+        return False
     except Exception:
         return False

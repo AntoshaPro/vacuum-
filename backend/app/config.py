@@ -20,10 +20,17 @@ class Config:
         """Проверяет наличие переменной окружения и запрашивает у пользователя при отсутствии"""
         value = os.getenv(key)
         if not value:
-            value = input(prompt)
-            # Сохраняем в .env файл
-            with open('.env', 'a') as f:
-                f.write(f'{key}={value}\n')
+            # Проверяем, можем ли мы получить ввод от пользователя (не в контейнере или в интерактивном режиме)
+            import sys
+            if sys.stdin.isatty():
+                # Работает в интерактивном режиме
+                value = input(prompt)
+                # Сохраняем в .env файл
+                with open('.env', 'a') as f:
+                    f.write(f'{key}={value}\n')
+            else:
+                # Работает в контейнере или без возможности ввода
+                raise ValueError(f"{key} не задан. Пожалуйста, установите переменную окружения {key}.")
         
         if expected_type == int:
             try:

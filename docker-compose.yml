@@ -10,10 +10,15 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
-      - telegram-session:/app
+      - telegram-session:/app/.session_data
     environment:
       - VIRTUAL_HOST=localhost
       - VIRTUAL_PORT=8000
+      - TG_API_ID=${TG_API_ID:-}
+      - TG_API_HASH=${TG_API_HASH:-}
+      - TG_SESSION_NAME=${TG_SESSION_NAME:-my_session}
+      - OUTPUT_FILE=${OUTPUT_FILE:-thanks_dialogs.txt}
+      - KEYWORDS_FILE=${KEYWORDS_FILE:-keywords.txt}
     networks:
       - app-network
 
@@ -30,7 +35,7 @@ services:
     depends_on:
       - backend
     environment:
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=http://backend:8000
     networks:
       - app-network
 

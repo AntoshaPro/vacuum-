@@ -68,9 +68,16 @@ async def startup_event():
     Инициализация при старте приложения
     """
     logger.info("Инициализация приложения...")
-    client = get_client()
-    # Не подключаемся сразу, а проверим при необходимости
-    logger.info("Приложение инициализировано")
+    try:
+        client = get_client()
+        # Не подключаемся сразу, а проверим при необходимости
+        logger.info("Приложение инициализировано")
+    except ValueError as e:
+        logger.warning(f"Предупреждение при инициализации: {e}")
+        # Продолжаем работу, но с возможностью настроить конфиг через API
+    except Exception as e:
+        logger.error(f"Ошибка при инициализации: {e}")
+        raise
 
 @app.get("/api/status")
 async def get_status():

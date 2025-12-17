@@ -7,7 +7,7 @@ import asyncio
 import logging
 
 from .config import config
-from .tg_client import get_client, is_authorized
+from .tg_client import get_client, is_authorized, start_authorization, complete_authorization
 from .keywords import load_keywords, save_keywords
 from .thanks_service import search_thanks, write_results_to_file, send_thanks, ThankMessage
 
@@ -26,6 +26,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+class AuthStartRequest(BaseModel):
+    """
+    Модель запроса для начала авторизации
+    """
+    phone: str
+
+class AuthCompleteRequest(BaseModel):
+    """
+    Модель запроса для завершения авторизации
+    """
+    code: str
+
 class SearchRequest(BaseModel):
     """
     Модель запроса для поиска сообщений
@@ -33,6 +45,7 @@ class SearchRequest(BaseModel):
     from_date: Optional[str] = None
     to_date: Optional[str] = None
     limit_per_dialog: Optional[int] = None
+    include_dates: Optional[bool] = True  # Whether to include dates in the response
 
 class SendRequest(BaseModel):
     """
@@ -93,6 +106,30 @@ async def get_status():
         "telegram_connected": auth_status,
         "message": "Сервер работает нормально" if auth_status else "Требуется авторизация в Telegram"
     }
+
+@app.post("/api/auth/start")
+async def auth_start(request: AuthStartRequest):
+    """
+    Начинает процесс авторизации в Telegram
+    """
+    try:
+        result = await start_authorization(request.phone)
+        return result
+    except Exception as e:
+        logger.error(f"Ошибка при начале авторизации: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка авторизации: {str(e)}")
+
+@app.post("/api/auth/complete")
+async def auth_complete(request: AuthCompleteRequest):
+    """
+    Завершает процесс авторизации в Telegram
+    """
+    try:
+        result = await complete_authorization(request.code)
+        return result
+    except Exception as e:
+        logger.error(f"Ошибка при завершении авторизации: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка завершения авторизации: {str(e)}")
 
 @app.get("/api/config")
 async def get_config():
@@ -160,9 +197,13 @@ async def search_thanks_endpoint(request: SearchRequest):
     Выполняет поиск сообщений с благодарностями
     """
     try:
-        # Преобразуем даты из строк в datetime объекты
-        from_date = datetime.fromisoformat(request.from_date.replace('Z', '+00:00')) if request.from_date else None
-        to_date = datetime.fromisoformat(request.to_date.replace('Z', '+00:00')) if request.to_date else None
+        # Преобразуем даты из строк в datetime объекты (если они есть)
+        from_date = None
+        to_date = None
+        if request.from_date:
+            from_date = datetime.fromisoformat(request.from_date.replace('Z', '+00:00'))
+        if request.to_date:
+            to_date = datetime.fromisoformat(request.to_date.replace('Z', '+00:00'))
         
         # Получаем клиента и ключевые слова
         client = get_client()
@@ -182,7 +223,19 @@ async def search_thanks_endpoint(request: SearchRequest):
         )
         
         # Записываем результаты в файл
-        write_results_to_file(messages)
+        write_results_to_file(messages, include_dates=request.include_dates)
+        
+        # Если нужно убрать даты из ответа, создаем копии сообщений без дат
+        if not request.include_dates:
+            # Возвращаем сообщения с пустыми/отсутствующими датами
+            messages_without_dates = []
+            for msg in messages:
+                # Создаем копию сообщения без даты или с пустой датой
+                msg_dict = msg.dict()
+                msg_dict['date'] = ''  # Убираем дату
+                updated_msg = ThankMessage(**msg_dict)
+                messages_without_dates.append(updated_msg)
+            return messages_without_dates
         
         return messages
     except Exception as e:

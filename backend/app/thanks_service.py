@@ -90,7 +90,7 @@ async def search_thanks(
     logger.info(f"Найдено {len(found_messages)} уникальных сообщений с благодарностями")
     return found_messages
 
-def write_results_to_file(messages: List[ThankMessage], filename: str = None):
+def write_results_to_file(messages: List[ThankMessage], filename: str = None, include_dates: bool = True):
     """
     Записывает результаты поиска в файл в человекочитаемом формате
     """
@@ -102,7 +102,10 @@ def write_results_to_file(messages: List[ThankMessage], filename: str = None):
     with open(filename, 'w', encoding='utf-8') as f:
         for msg in messages:
             f.write("=========================\n")
-            f.write(f"[{msg.date}] chat={msg.chat_name} user={msg.username or 'N/A'} ({msg.chat_id}) : {msg.text}\n\n")
+            if include_dates:
+                f.write(f"[{msg.date}] chat={msg.chat_name} user={msg.username or 'N/A'} ({msg.chat_id}) : {msg.text}\n\n")
+            else:
+                f.write(f"chat={msg.chat_name} user={msg.username or 'N/A'} ({msg.chat_id}) : {msg.text}\n\n")
     
     logger.info(f"Результаты записаны в файл: {filename}")
 

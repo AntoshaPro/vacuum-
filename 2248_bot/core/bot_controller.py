@@ -8,12 +8,12 @@ from typing import List, Tuple, Optional
 from game_io.screen_capture import get_game_state
 from game_io.input_handler import execute_move
 from logic.game_logic import GameLogic
-from config.default_config import HEURISTIC_WEIGHTS, LOG_FILE, LOG_LEVEL, BOARD_SIZE, MOVE_DELAY
+from config.default_config import HEURISTIC_WEIGHTS, LOG_FILE, LOG_LEVEL, MOVE_DELAY
 
 
 class BotController:
     def __init__(self, grid_size: Tuple[int, int] = None):
-        self.grid_size = grid_size or (BOARD_SIZE['rows'], BOARD_SIZE['cols'])
+        self.grid_size = grid_size  # Allow None for auto-detection
         self.game_logic = GameLogic()
         self.move_history = []
         self.score_history = []
@@ -33,11 +33,30 @@ class BotController:
         print("Starting 2248 bot...")
         self.logger.info("Starting 2248 bot")
         
+        # Track if we've detected the grid size
+        detected_grid_size = None
+        board_region = None  # Track the board region for move execution
+        
         while True:
             try:
                 # Capture current game state
                 print("Capturing game state...")
-                board = get_game_state(self.grid_size)
+                
+                # If we haven't detected the grid size yet, pass None to auto-detect
+                # Otherwise, use the previously detected size for consistency
+                capture_grid_size = detected_grid_size if detected_grid_size else self.grid_size
+                board, detected_region = get_game_state(capture_grid_size)
+                
+                # Update the board region for move execution
+                if detected_region and detected_region != (0, 0, 0, 0):
+                    board_region = detected_region
+                
+                # If we're using auto-detection and haven't detected the size yet, 
+                # the get_game_state function would have determined the size
+                if self.grid_size is None and board and not detected_grid_size:
+                    # Confirm the grid size based on the actual board dimensions received
+                    detected_grid_size = (len(board), len(board[0]) if board else 0)
+                    print(f"Confirmed grid size: {detected_grid_size[0]}x{detected_grid_size[1]}")
                 
                 if not board or len(board) == 0:
                     print("Failed to get valid game state, retrying...")
@@ -76,10 +95,10 @@ class BotController:
                 })
                 
                 # Execute the move
-                # Note: We need the board region info to calculate screen coordinates
-                # This is a simplified version - in practice, we'd pass actual board region
-                board_region = (100, 100, 400, 400)  # Placeholder values
-                success = execute_move(best_chain, board_region, self.grid_size)
+                # Use the detected board region and grid size for coordinate calculation
+                # Fallback to a reasonable default if detection failed
+                effective_grid_size = detected_grid_size or self.grid_size or (5, 5)
+                success = execute_move(best_chain, board_region, effective_grid_size)
                 
                 if success:
                     print("Move executed successfully")
@@ -145,16 +164,20 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description="2248 Game Bot")
-    parser.add_argument("--rows", type=int, default=BOARD_SIZE['rows'], help="Number of rows in the game board")
-    parser.add_argument("--cols", type=int, default=BOARD_SIZE['cols'], help="Number of columns in the game board")
+    parser.add_argument("--rows", type=int, help="Number of rows in the game board (default: auto-detect)")
+    parser.add_argument("--cols", type=int, help="Number of columns in the game board (default: auto-detect)")
     parser.add_argument("--no-gui", action="store_true", help="Run without GUI (headless mode)")
     
     args = parser.parse_args()
     
-    grid_size = (args.rows, args.cols)
+    # Use provided grid size or None for auto-detection
+    grid_size = (args.rows, args.cols) if args.rows and args.cols else None
     bot = BotController(grid_size)
     
-    print(f"Starting 2248 bot with grid size: {grid_size[0]}x{grid_size[1]}")
+    if grid_size:
+        print(f"Starting 2248 bot with grid size: {grid_size[0]}x{grid_size[1]}")
+    else:
+        print("Starting 2248 bot with automatic grid size detection")
     
     bot.run()
 

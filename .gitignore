@@ -1,20 +1,10 @@
 ```
-# Dependencies
+# Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
+*.so
 .Python
-env/
-venv/
-.venv/
-.venv3/
-.venv_py3/
-.python-version
-requirements/*.txt
-!requirements.txt
-
-# Build and distribution artifacts
 build/
 develop-eggs/
 dist/
@@ -30,73 +20,34 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-
-# Testing
-.coverage
-coverage/
-htmlcov/
-.nosetests
-.unit_test_results.xml
-.pytest_cache/
-.tox/
-.cover/
-
-# Logs
-*.log
-*.out
-*.pid
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-desktop.ini
-
-# IDE and editor files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-.DS_Store?
-._*
-
-# Environment variables
-.env
-.env.local
-.env.*
-!.env.example
-
-# Python specific
-*.py[cod]
-*$py.class
-*$pyc.class
-*.so
-.Python
-idle.log
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Security
-secret_token.rb
-config/master.key
-config/credentials.yml.enc
-
-# Documentation
-docs/_build/
-
-# Virtual environments
 venv/
+.env
 ENV/
 env.bak/
 venv.bak/
 
-# Distribution / packaging
-.landscape.yaml
-.pyre/
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+coverage/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+*.env.*
 ```

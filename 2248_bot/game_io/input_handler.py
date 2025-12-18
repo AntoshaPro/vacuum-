@@ -116,7 +116,7 @@ def execute_move(chain: List[Tuple[int, int]], board_region: Tuple[int, int, int
     """
     handler = InputHandler()
     
-    # Calculate cell dimensions
+    # Calculate cell dimensions dynamically based on board region and grid size
     cell_size = handler.calculate_cell_dimensions(board_region, grid_size)
     board_offset = (board_region[0], board_region[1])
     

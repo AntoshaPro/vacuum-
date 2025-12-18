@@ -46,12 +46,12 @@ Make sure you have Tesseract installed on your system:
 3. Run the bot:
 
 ```bash
-python -m core.bot_controller --rows 6 --cols 6
+python -m core.bot_controller
 ```
 
 Options:
-- `--rows`: Number of rows in the game board (default: 6)
-- `--cols`: Number of columns in the game board (default: 6)
+- `--rows`: Number of rows in the game board (default: auto-detect)
+- `--cols`: Number of columns in the game board (default: auto-detect)
 - `--no-gui`: Run without GUI (headless mode)
 
 ## Configuration
@@ -61,15 +61,16 @@ Adjust the settings in `config/default_config.py` to match your environment:
 - Screen capture settings
 - Timing delays
 - Heuristic weights
-- Board size
+- Board size (only used when not auto-detecting, but now auto-detection is default and recommended)
 
 ## How It Works
 
 1. **Screen Capture**: Uses ADB to take screenshots of the game
-2. **Number Recognition**: Uses OCR to identify numbers in each cell
-3. **Chain Detection**: Finds connected chains of identical numbers in 8 directions
-4. **Move Evaluation**: Simulates each possible move and evaluates the resulting position
-5. **Move Execution**: Sends touch/swipe commands to the emulator via ADB
+2. **Board Detection**: Automatically detects the game board region and grid size
+3. **Number Recognition**: Uses OCR to identify numbers in each cell
+4. **Chain Detection**: Finds connected chains of identical numbers in 8 directions
+5. **Move Evaluation**: Simulates each possible move and evaluates the resulting position
+6. **Move Execution**: Sends touch/swipe commands to the emulator via ADB
 
 ## Heuristics
 
@@ -82,7 +83,7 @@ The bot uses several heuristics to evaluate board positions:
 
 ## Notes
 
-- The bot assumes a 6x6 board by default, but this can be configured
+- The bot can automatically detect the board size, but you can also specify it via command line
 - Performance depends on accurate OCR recognition
 - Timing settings may need adjustment based on emulator performance
 - The bot continues playing until manually stopped or the game ends

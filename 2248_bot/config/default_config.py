@@ -2,11 +2,8 @@
 Configuration settings for the 2248 bot
 """
 
-# Game board settings
-BOARD_SIZE = {
-    'rows': 6,
-    'cols': 6
-}
+# Game board settings - no hard-coded grid dimensions
+# Grid detection is done automatically from the screenshot
 
 # ADB/emulator settings
 ADB_DEVICE = "emulator-5554"  # Default emulator device ID
